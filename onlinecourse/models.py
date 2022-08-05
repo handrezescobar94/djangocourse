@@ -72,8 +72,12 @@ class Course(models.Model):
 class Lesson(models.Model):
     title = models.CharField(max_length=200, default="title")
     order = models.IntegerField(default=0)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='lessons')
     content = models.TextField()
+
+    def __str__(self):
+        return "Course: " + self.course.name + " | " + \
+               "Lesson: " + self.title
 
 
 # Enrollment model
@@ -102,13 +106,13 @@ class Enrollment(models.Model):
     # Has question content
     # Other fields and methods you would like to design
 class Question(models.Model):
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='questions')
     question_text = models.CharField(max_length=150)
     question_grade = models.IntegerField()
         
     def is_get_score(self, selected_ids):
-        all_answers = self.choice_set.filter(is_correct=True).count()
-        selected_correct = self.choice_set.filter(is_correct=True, id__in=selected_ids).count()
+        all_answers = self.choices.filter(choice_is_correct=True).count()
+        selected_correct = self.choices.filter(choice_is_correct=True, id__in=selected_ids).count()
         if all_answers == selected_correct:
             return True
         else:
@@ -122,7 +126,7 @@ class Question(models.Model):
     # Indicate if this choice of the question is a correct one or not
     # Other fields and methods you would like to design
 class Choice(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
     choice_text = models.CharField(max_length=150)
     choice_is_correct = models.BooleanField(default=False)
 
